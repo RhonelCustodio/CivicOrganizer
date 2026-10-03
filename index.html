@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Victoria Civic Portal | Organizer Console</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        victoria: {
+                            blue: "#003B71",
+                            gold: "#F2A900",
+                            goldDark: "#D49300",
+                            dark: "#001F3F",
+                            light: "#E8F0FE",
+                            accent: "#005B9F"
+                        }
+                    },
+                    boxShadow: {
+                        soft: "0 16px 40px rgba(15, 23, 42, 0.08)"
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./src//assets/style.css">
+    <link rel="icon" type="image/png" href="./src/assets/logo.png">
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased">
+    <!-- Boot loader overlay (slow-internet aware, mirrored from Resident Hub) -->
+    <div id="page-loading-overlay" class="page-loading-overlay active">
+        <div class="text-center px-6">
+            <div class="loading-spinner mx-auto"></div>
+            <p class="text-victoria-gold font-bold text-sm tracking-wider uppercase mt-5" style="color:#F2A900;">
+                Loading Organizer Console...
+            </p>
+            <p class="text-gray-400 text-xs mt-2 font-medium" style="color:#94a3b8;">
+                Municipality of Victoria
+            </p>
+            <div class="boot-progress mt-5 mx-auto" aria-hidden="true">
+                <div class="boot-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        /* Boot loader failsafe: never trap the user behind the overlay for
+           more than 30 s if the main module script cannot load at all.
+           organizer.js hides it much earlier once the session is ready. */
+        setTimeout(function () {
+            var o = document.getElementById("page-loading-overlay");
+            if (o) o.classList.remove("active");
+        }, 30000);
+    </script>
+    <!-- Desktop-only access notice -->
+    <div id="desktop-gate"
+        class="min-h-screen items-center justify-center bg-victoria-dark p-6 relative overflow-hidden">
+        <div class="absolute inset-0 bg-pattern"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-white/20">
+            <div class="w-20 h-20 bg-victoria-light rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-desktop text-4xl text-victoria-blue"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold text-victoria-blue">Desktop access required</h1>
+            <p class="text-sm text-slate-600 mt-3 leading-relaxed">The Organizer Console is designed for secure event
+                operations on laptop and desktop screens with a minimum width of 1024 pixels.</p>
+            <p class="text-xs text-slate-400 mt-6"><i class="fa-solid fa-building-columns mr-1"></i> Municipality of
+                Victoria</p>
+        </div>
+    </div>
+
+    <div id="app-root">
+        <!-- Global loading overlay -->
+        <div id="global-loading"
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-[300]"
+            role="status" aria-live="polite">
+            <div class="text-center">
+                <div class="relative w-16 h-16 mx-auto">
+                    <div
+                        class="absolute inset-0 rounded-full border-4 border-white/20 border-t-victoria-gold animate-spin">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center"><i
+                            class="fa-solid fa-calendar-check text-victoria-gold"></i></div>
+                </div>
+                <p id="loading-text" class="text-white text-sm font-semibold tracking-wide mt-4">Processing request…</p>
+            </div>
+        </div>
+
+        <!-- Login -->
+        <section id="login-screen"
+            class="min-h-screen flex items-center justify-center bg-gradient-to-br from-victoria-dark via-victoria-blue to-victoria-dark px-4 relative overflow-hidden">
+            <div class="absolute inset-0 bg-pattern"></div>
+            <div class="absolute -top-28 -right-28 w-96 h-96 bg-victoria-gold/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-32 -left-20 w-96 h-96 bg-victoria-accent/30 rounded-full blur-3xl"></div>
+
+            <div class="relative z-10 bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-white/80">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20">
+                        <img src="./src/assets/logo.png" alt="Official Victoria Logo" class="w-20 h-20" />
+                    </div>
+                    <p class="text-[11px] font-bold tracking-[.24em] text-victoria-accent uppercase">Victoria Civic
+                        Portal</p>
+                    <h1 class="text-2xl font-extrabold text-victoria-blue mt-2">Organizer Console</h1>
+                    <p class="text-sm text-slate-500 mt-2">Authorized event operations personnel only</p>
+                    <!-- OneVictoria introduction (mirrored from Resident Hub landing) -->
+                    <div class="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-left">
+                        <p class="text-[11px] text-slate-500 leading-relaxed">
+                            <span class="font-bold text-victoria-blue">Part of OneVictoria</span> — the official
+                            Resident Hub of the Municipality of Victoria, Tarlac. This console lets authorized
+                            organizers manage the announcements, community events, volunteer applications, service
+                            hours, and donations that residents see and use on the OneVictoria platform.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="login-form" class="space-y-5" autocomplete="on">
+                    <div>
+                        <label for="login-email"
+                            class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Organizer
+                            email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i
+                                    class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="login-email" autocomplete="username" required
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm"
+                                placeholder="organizer@victoria.gov.ph">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="login-password"
+                            class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i
+                                    class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="login-password" autocomplete="current-password" required
+                                class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-300 text-sm"
+                                placeholder="Enter your password">
+                            <button id="toggle-password" type="button"
+                                class="absolute inset-y-0 right-0 pr-3.5 text-slate-400 hover:text-victoria-blue"
+                                aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full btn-primary font-bold py-3.5 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i><span>Access organizer console</span>
+                    </button>
+                </form>
+
+                <div
+                    class="mt-6 pt-5 border-t border-slate-200 flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <i class="fa-solid fa-shield-halved text-victoria-accent"></i>
+                    <span>Limited role-based access</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Organizer dashboard -->
+        <div id="dashboard" class="hidden h-screen overflow-hidden">
+            <aside
+                class="sidebar-gradient w-[230px] shrink-0 text-white flex flex-col h-screen shadow-2xl relative z-30">
+                <div class="p-6 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="inline-flex items-center justify-center w-20 h-20">
+                            <img src="./src/assets/logo.png" alt="Official Victoria Logo" class="w-15 h-15" />
+                        </div>
+                        <div class="min-w-0">
+                            <h2 class="font-extrabold text-sm text-white">Organizer Console</h2>
+                            <p class="text-xs text-blue-100/70">Event operations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-5 py-4 border-b border-white/10 bg-white/5">
+                    <p id="sidebar-user-name" class="text-sm font-bold truncate">Event Organizer</p>
+                    <p id="sidebar-user-email" class="text-[11px] text-blue-100/60 truncate mt-0.5"></p>
+                </div>
+
+                <nav class="flex-1 p-4 space-y-1 overflow-y-auto" aria-label="Organizer navigation">
+                    <p class="text-[10px] font-bold text-blue-100/50 uppercase tracking-[.18em] px-3 pt-2 pb-1">
+                        Communications</p>
+                    <button type="button" data-tab="announcements"
+                        class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-blue-50/90 hover:bg-white/10">
+                        <i
+                            class="fa-solid fa-bullhorn w-5 text-center text-victoria-gold"></i><span>Announcements</span>
+                    </button>
+
+                    <div class="my-3 border-t border-white/10"></div>
+                    <p class="text-[10px] font-bold text-blue-100/50 uppercase tracking-[.18em] px-3 pb-1">Event
+                        operations</p>
+                    <button type="button" data-tab="events"
+                        class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-blue-50/90 hover:bg-white/10">
+                        <i class="fa-solid fa-calendar-days w-5 text-center text-victoria-gold"></i><span>Events</span>
+                    </button>
+                    <button type="button" data-tab="volunteers"
+                        class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-blue-50/90 hover:bg-white/10">
+                        <i
+                            class="fa-solid fa-hands-holding w-5 text-center text-victoria-gold"></i><span>Volunteers</span>
+                        <span id="badge-volunteers" class="nav-badge hidden" aria-hidden="true">0</span>
+                    </button>
+                    <button type="button" data-tab="hours"
+                        class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-blue-50/90 hover:bg-white/10">
+                        <i class="fa-solid fa-clock w-5 text-center text-victoria-gold"></i><span>Service Hours</span>
+                        <span id="badge-hours" class="nav-badge hidden" aria-hidden="true">0</span>
+                    </button>
+
+                    <div class="my-3 border-t border-white/10"></div>
+                    <p class="text-[10px] font-bold text-blue-100/50 uppercase tracking-[.18em] px-3 pb-1">Community</p>
+                    <button type="button" data-tab="donations"
+                        class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-blue-50/90 hover:bg-white/10">
+                        <i
+                            class="fa-solid fa-hand-holding-heart w-5 text-center text-victoria-gold"></i><span>Donations</span>
+                        <span id="badge-donations" class="nav-badge hidden" aria-hidden="true">0</span>
+                    </button>
+                </nav>
+
+                <div class="p-4 border-t border-white/10">
+                    <button id="logout-btn" type="button"
+                        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[12px] text-rose-300 hover:text-white hover:bg-rose-500/20 transition-colors">
+                        <i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Exit console</span>
+                    </button>
+                </div>
+            </aside>
+
+            <main class="flex-1 h-screen overflow-y-auto bg-slate-50">
+                <header
+                    class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-200 px-8 py-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[.18em] text-slate-400 font-bold">Municipality of
+                            Victoria</p>
+                        <h2 id="page-title" class="text-lg font-extrabold text-victoria-blue mt-0.5">Events</h2>
+                    </div>
+                    <!-- Header badge removed as requested (Secure session) -->
+                </header>
+
+                <div class="p-8 max-w-[1600px] mx-auto">
+
+
+                    <!-- Announcements -->
+                    <section id="announcements" class="tab-content hidden">
+                        <div class="flex items-end justify-between gap-6 pb-5 mb-6 border-b border-slate-200">
+                            <div>
+                                <p class="text-xs font-bold text-victoria-accent uppercase tracking-[.16em]">
+                                    Communications</p>
+                                <h1 class="text-3xl font-extrabold text-victoria-blue tracking-tight mt-1">Announcements
+                                    Dispatcher</h1>
+                                <p class="text-sm text-slate-500 mt-1">Create public broadcasts and community alerts.
+                                </p>
+                            </div>
+                            <button id="open-announcement-modal" type="button"
+                                class="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-plus"></i><span>Dispatch alert</span>
+                            </button>
+                        </div>
+                        <div id="announcements-container"
+                            class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start"></div>
+                    </section>
+
+                    <!-- Events -->
+                    <section id="events" class="tab-content hidden">
+                        <div class="flex items-end justify-between gap-6 pb-5 mb-6 border-b border-slate-200">
+                            <div>
+                                <p class="text-xs font-bold text-victoria-accent uppercase tracking-[.16em]">Event
+                                    operations</p>
+                                <h1 class="text-3xl font-extrabold text-victoria-blue tracking-tight mt-1">Community
+                                    Event Scheduling</h1>
+                                <p class="text-sm text-slate-500 mt-1">Create, review, and update community activities.
+                                </p>
+                            </div>
+                            <button id="open-event-modal" type="button"
+                                class="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-plus"></i><span>Schedule event</span>
+                            </button>
+                        </div>
+                        <div id="events-grid" class="grid grid-cols-3 xl:grid-cols-4 gap-5"></div>
+                    </section>
+
+                    <!-- Volunteers -->
+                    <section id="volunteers" class="tab-content hidden">
+                        <div class="flex items-end justify-between gap-6 pb-5 mb-6 border-b border-slate-200">
+                            <div>
+                                <p class="text-xs font-bold text-victoria-accent uppercase tracking-[.16em]">Event
+                                    operations</p>
+                                <h1 class="text-3xl font-extrabold text-victoria-blue tracking-tight mt-1">Volunteer
+                                    Roster</h1>
+                                <p class="text-sm text-slate-500 mt-1">Review volunteer applications and verify
+                                    credentials.</p>
+                            </div>
+                            <button id="bulk-approve-btn" type="button"
+                                class="px-5 py-2.5 rounded-xl font-bold text-sm border border-emerald-500 text-emerald-700 hover:bg-emerald-50 transition-colors flex items-center gap-2 whitespace-nowrap">
+                                <i class="fa-solid fa-check-double"></i><span>Approve all pending</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <!-- Filter Bar -->
+                            <div
+                                class="p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-hands-holding text-victoria-blue"></i>Volunteer
+                                        Applications
+                                    </h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Manage and verify volunteer applications ·
+                                        <span id="volunteer-result-count">0 records</span>
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <select id="volunteer-filter"
+                                        class="border-slate-300 rounded-lg px-3.5 py-2 text-sm font-medium text-slate-700 bg-white hover:border-slate-400 focus:border-victoria-blue transition-all cursor-pointer min-w-[170px]">
+                                        <option value="all">All Volunteers</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                    <select id="volunteer-sort"
+                                        class="border-slate-300 rounded-lg px-3.5 py-2 text-sm font-medium text-slate-700 bg-white hover:border-slate-400 focus:border-victoria-blue transition-all cursor-pointer min-w-[190px]">
+                                        <option value="date-desc">Date (Newest First)</option>
+                                        <option value="date-asc">Date (Oldest First)</option>
+                                        <option value="name-asc">Name (A to Z)</option>
+                                        <option value="name-desc">Name (Z to A)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="overflow-auto max-h-[560px]">
+                                <table class="w-full text-sm sticky-table sticky-header" id="volunteers-table">
+                                    <thead>
+                                        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                            <th class="px-5 py-4 text-left">Volunteer Name</th>
+                                            <th class="px-4 py-4 text-left w-[170px]">Contact</th>
+                                            <th class="px-4 py-4 text-left w-[150px]">Skills & Experience</th>
+                                            <th class="px-4 py-4 text-left">Availability</th>
+                                            <th class="px-4 py-4 text-left">Document</th>
+                                            <th class="px-5 py-4 text-left">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="organizer-volunteers-tbody" class="divide-y divide-slate-100 text-sm">
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-8 text-center text-slate-400">
+                                                <i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading volunteers...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Service hours -->
+                    <section id="hours" class="tab-content hidden">
+                        <div class="pb-5 mb-6 border-b border-slate-200">
+                            <p class="text-xs font-bold text-victoria-accent uppercase tracking-[.16em]">Event
+                                operations</p>
+                            <h1 class="text-3xl font-extrabold text-victoria-blue tracking-tight mt-1">Service Hour
+                                Validation</h1>
+                            <p class="text-sm text-slate-500 mt-1">Certify rendered hours and monitor event registration
+                                activity. New event joins appear here.</p>
+                        </div>
+
+                        <div id="new-event-joins-panel"
+                            class="hidden mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <h3 class="font-extrabold text-amber-950 text-sm flex items-center gap-2">
+                                    <span class="item-new-chip">NEW</span>
+                                    Recent event registrations
+                                </h3>
+                                <span id="new-event-joins-count" class="text-xs font-bold text-amber-800"></span>
+                            </div>
+                            <div id="new-event-joins-list" class="space-y-2"></div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-6 mb-7">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 card">
+                                <div
+                                    class="w-11 h-11 bg-victoria-light text-victoria-blue rounded-xl flex items-center justify-center mb-4">
+                                    <i class="fa-solid fa-certificate"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800">Certify hours</h3>
+                                <p class="text-xs text-slate-500 mt-1 mb-5">Select an active participant registration.
+                                </p>
+                                <form id="hour-form" class="space-y-4">
+                                    <div>
+                                        <label for="hour-participant-select"
+                                            class="block text-sm font-semibold text-slate-700 mb-2">Participant</label>
+                                        <select id="hour-participant-select" required
+                                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm">
+                                            <option value="">Loading participants…</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="hour-value"
+                                            class="block text-sm font-semibold text-slate-700 mb-2">Hours
+                                            rendered</label>
+                                        <input type="number" min="0.5" max="24" step="0.5" id="hour-value" required
+                                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm"
+                                            placeholder="e.g. 2.5">
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full btn-primary font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"><i
+                                            class="fa-solid fa-check"></i><span>Authorize credit</span></button>
+                                </form>
+                            </div>
+
+                            <div
+                                class="col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="p-5 border-b border-slate-200">
+                                    <h3 class="font-bold text-slate-800">Validated service ledger</h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Latest certified service-hour entries</p>
+                                </div>
+                                <div class="overflow-auto max-h-[380px]">
+                                    <table class="w-full text-sm sticky-table">
+                                        <thead>
+                                            <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                                <th class="px-4 py-3 text-left">Resident</th>
+                                                <th class="px-4 py-3 text-left">Event</th>
+                                                <th class="px-4 py-3 text-center">Hours</th>
+                                                <th class="px-4 py-3 text-left">Status</th>
+                                                <th class="px-4 py-3 text-left">Certified by</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="organizer-hours-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="p-5 border-b border-slate-200 flex items-center justify-between gap-5">
+                                <div>
+                                    <h3 class="font-bold text-slate-800"><i
+                                            class="fa-solid fa-clock-rotate-left text-victoria-blue mr-2"></i>Event
+                                        registration activity</h3>
+                                    <p id="activity-result-count" class="text-xs text-slate-400 mt-1">0 records</p>
+                                </div>
+                                <div id="activity-filters" class="flex gap-2">
+                                    <button type="button" data-filter="all"
+                                        class="activity-filter px-3 py-2 rounded-lg text-xs font-bold bg-victoria-blue text-white">All</button>
+                                    <button type="button" data-filter="Registered"
+                                        class="activity-filter px-3 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Registered</button>
+                                    <button type="button" data-filter="Completed"
+                                        class="activity-filter px-3 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Credited</button>
+                                    <button type="button" data-filter="Cancelled"
+                                        class="activity-filter px-3 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Cancelled</button>
+                                    <button type="button" data-filter="Rejected"
+                                        class="activity-filter px-3 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Rejected</button>
+                                </div>
+                            </div>
+                            <div class="overflow-auto max-h-[440px]">
+                                <table class="w-full text-sm sticky-table">
+                                    <thead>
+                                        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                            <th class="px-5 py-3 text-left">Resident</th>
+                                            <th class="px-4 py-3 text-left">Event</th>
+                                            <th class="px-4 py-3 text-left">Activity</th>
+                                            <th class="px-4 py-3 text-left">Date & time</th>
+                                            <th class="px-4 py-3 text-left">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activity-logs-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Donations -->
+                    <section id="donations" class="tab-content hidden">
+                        <div class="pb-5 mb-6 border-b border-slate-200">
+                            <p class="text-xs font-bold text-victoria-accent uppercase tracking-[.16em]">Community</p>
+                            <h1 class="text-3xl font-extrabold text-victoria-blue tracking-tight mt-1">Donations &
+                                Contributions</h1>
+                            <p class="text-sm text-slate-500 mt-1">Review and verify resources pledged to community
+                                programs.</p>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="p-5 border-b border-slate-200 flex items-center justify-between gap-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Donation records</h3>
+                                    <p id="donation-result-count" class="text-xs text-slate-400 mt-0.5">0 records</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="printOrganizerDonations()"
+                                        class="px-3.5 py-2 rounded text-xs font-semibold bg-victoria-blue text-white hover:bg-victoria-dark transition-all shadow-sm inline-flex items-center gap-1.5 whitespace-nowrap">
+                                        <i class="fa-solid fa-file-pdf"></i><span>Print as PDF</span>
+                                    </button>
+                                    <select id="donation-filter" class="border-slate-300 rounded-lg text-sm min-w-40">
+                                        <option value="all">All statuses</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Approved">Confirmed</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                    <select id="donation-sort" class="border-slate-300 rounded-lg text-sm min-w-44">
+                                        <option value="date-desc">Newest first</option>
+                                        <option value="date-asc">Oldest first</option>
+                                        <option value="name-asc">Donor A–Z</option>
+                                        <option value="name-desc">Donor Z–A</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overflow-auto max-h-[570px]">
+                                <table class="w-full text-sm sticky-table">
+                                    <thead>
+                                        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                            <th class="px-5 py-4 text-left">Donor</th>
+                                            <th class="px-4 py-4 text-left">Resource</th>
+                                            <th class="px-4 py-4 text-left">Proof of Payment</th>
+                                            <th class="px-4 py-4 text-left">Purpose</th>
+                                            <th class="px-4 py-4 text-left">Date</th>
+                                            <th class="px-4 py-4 text-left">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="organizer-donations-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <!-- Event create modal -->
+        <div id="event-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[100]"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl max-h-[92vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-bold text-victoria-accent">New event</p>
+                        <h2 class="text-xl font-extrabold text-victoria-blue mt-1">Launch community event</h2>
+                    </div>
+                    <button type="button" data-close-modal="event-modal"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="event-form" class="p-6 space-y-4">
+                    <div><label for="event-title" class="block text-sm font-semibold text-slate-700 mb-1.5">Event
+                            title</label><input type="text" id="event-title" maxlength="120" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Enter event title">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="event-date"
+                                class="block text-sm font-semibold text-slate-700 mb-1.5">Date</label><input type="date"
+                                id="event-date" required class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                        <div><label for="event-time"
+                                class="block text-sm font-semibold text-slate-700 mb-1.5">Time</label><input type="time"
+                                id="event-time" class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                    </div>
+                    <div><label for="event-location"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Location</label><input type="text"
+                            id="event-location" maxlength="180" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm"
+                            placeholder="Venue or meeting point"></div>
+                    <div><label for="event-category"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Category</label><select
+                            id="event-category" required class="w-full border-slate-300 rounded-xl p-2.5 text-sm">
+                            <option value="">Select a category</option>
+                            <option>Seminar</option>
+                            <option>Workshop</option>
+                            <option>Meeting</option>
+                            <option>Sports & Fitness</option>
+                            <option>Health</option>
+                            <option>Training</option>
+                            <option>Celebration</option>
+                            <option>Outreach</option>
+                            <option>Environmental</option>
+                            <option>Cultural</option>
+                            <option>Fundraising</option>
+                            <option>Clean-up Drive</option>
+                            <option>Medical Mission</option>
+                            <option>Community Gathering</option>
+                            <option>Education</option>
+                            <option>Charity</option>
+                            <option>Technology</option>
+                            <option>Arts & Culture</option>
+                        </select></div>
+                    <fieldset class="rounded-xl border border-slate-200 p-4">
+                        <legend class="px-1 text-sm font-semibold text-slate-700">Event image <span
+                                class="font-normal text-slate-400">(optional)</span></legend>
+                        <p class="text-xs text-slate-400 mb-3">Choose one source: paste an image URL or attach an image
+                            file.</p>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="event-image-source" value="url" class="peer sr-only" checked>
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-link"></i>Image URL</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="event-image-source" value="upload" class="peer sr-only">
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-paperclip"></i>Upload image</span>
+                            </label>
+                        </div>
+                        <div id="event-image-url-panel">
+                            <label for="event-image" class="block text-xs font-semibold text-slate-600 mb-1.5">Image
+                                URL</label>
+                            <input type="url" id="event-image" class="w-full border-slate-300 rounded-xl p-2.5 text-sm"
+                                placeholder="https://example.com/event.jpg">
+                        </div>
+                        <div id="event-image-upload-panel" class="hidden">
+                            <label for="event-image-file"
+                                class="block text-xs font-semibold text-slate-600 mb-1.5">Attach image file</label>
+                            <input type="file" id="event-image-file" accept="image/jpeg,image/png,image/webp"
+                                class="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-victoria-light file:px-3 file:py-2 file:font-bold file:text-victoria-blue hover:file:bg-blue-100">
+                            <p id="event-image-file-label" class="text-[11px] text-slate-400 mt-2">Original retained
+                                when possible · high-quality optimization · 8 MB max</p>
+                        </div>
+                    </fieldset>
+                    <div><label for="event-desc"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Description</label><textarea
+                            id="event-desc" rows="4" maxlength="1500" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm resize-y"
+                            placeholder="Describe the event and participation details"></textarea></div>
+                    <div class="flex justify-end gap-3 pt-2"><button type="button" data-close-modal="event-modal"
+                            class="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold hover:bg-slate-50">Cancel</button><button
+                            type="submit" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold"><i
+                                class="fa-solid fa-paper-plane mr-2"></i>Publish event</button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Event edit modal -->
+        <div id="edit-event-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[100]"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl max-h-[92vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-bold text-amber-600">Update event</p>
+                        <h2 class="text-xl font-extrabold text-victoria-blue mt-1">Edit community event</h2>
+                    </div>
+                    <button type="button" data-close-modal="edit-event-modal"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="edit-event-form" class="p-6 space-y-4">
+                    <input type="hidden" id="edit-event-id">
+                    <div><label for="edit-event-title" class="block text-sm font-semibold text-slate-700 mb-1.5">Event
+                            title</label><input type="text" id="edit-event-title" maxlength="120" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="edit-event-date"
+                                class="block text-sm font-semibold text-slate-700 mb-1.5">Date</label><input type="date"
+                                id="edit-event-date" required class="w-full border-slate-300 rounded-xl p-2.5 text-sm">
+                        </div>
+                        <div><label for="edit-event-time"
+                                class="block text-sm font-semibold text-slate-700 mb-1.5">Time</label><input type="time"
+                                id="edit-event-time" class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                    </div>
+                    <div><label for="edit-event-location"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Location</label><input type="text"
+                            id="edit-event-location" maxlength="180" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                    <div><label for="edit-event-category"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Category</label><select
+                            id="edit-event-category" required class="w-full border-slate-300 rounded-xl p-2.5 text-sm">
+                            <option value="">Select a category</option>
+                            <option>Seminar</option>
+                            <option>Workshop</option>
+                            <option>Meeting</option>
+                            <option>Sports & Fitness</option>
+                            <option>Health</option>
+                            <option>Training</option>
+                            <option>Celebration</option>
+                            <option>Outreach</option>
+                            <option>Environmental</option>
+                            <option>Cultural</option>
+                            <option>Fundraising</option>
+                            <option>Clean-up Drive</option>
+                            <option>Medical Mission</option>
+                            <option>Community Gathering</option>
+                            <option>Education</option>
+                            <option>Charity</option>
+                            <option>Technology</option>
+                            <option>Arts & Culture</option>
+                        </select></div>
+                    <fieldset class="rounded-xl border border-slate-200 p-4">
+                        <legend class="px-1 text-sm font-semibold text-slate-700">Event image <span
+                                class="font-normal text-slate-400">(optional)</span></legend>
+                        <p class="text-xs text-slate-400 mb-3">Keep or replace the image using one source.</p>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="edit-event-image-source" value="url" class="peer sr-only"
+                                    checked>
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-link"></i>Image URL</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="edit-event-image-source" value="upload" class="peer sr-only">
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-paperclip"></i>Upload image</span>
+                            </label>
+                        </div>
+                        <div id="edit-event-image-url-panel">
+                            <label for="edit-event-image"
+                                class="block text-xs font-semibold text-slate-600 mb-1.5">Image URL</label>
+                            <input type="url" id="edit-event-image"
+                                class="w-full border-slate-300 rounded-xl p-2.5 text-sm"
+                                placeholder="https://example.com/event.jpg">
+                        </div>
+                        <div id="edit-event-image-upload-panel" class="hidden">
+                            <label for="edit-event-image-file"
+                                class="block text-xs font-semibold text-slate-600 mb-1.5">Attach replacement
+                                image</label>
+                            <input type="file" id="edit-event-image-file" accept="image/jpeg,image/png,image/webp"
+                                class="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-victoria-light file:px-3 file:py-2 file:font-bold file:text-victoria-blue hover:file:bg-blue-100">
+                            <p id="edit-event-image-file-label" class="text-[11px] text-slate-400 mt-2">Choose a file
+                                only when replacing the current image.</p>
+                        </div>
+                        <label class="flex items-center gap-2 mt-3 text-xs font-semibold text-rose-600 cursor-pointer">
+                            <input type="checkbox" id="edit-event-remove-image"
+                                class="rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                            Remove the current event image
+                        </label>
+                    </fieldset>
+                    <div><label for="edit-event-desc"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Description</label><textarea
+                            id="edit-event-desc" rows="4" maxlength="1500" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm resize-y"></textarea></div>
+                    <div class="flex justify-end gap-3 pt-2"><button type="button" data-close-modal="edit-event-modal"
+                            class="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold hover:bg-slate-50">Cancel</button><button
+                            type="submit" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold"><i
+                                class="fa-solid fa-floppy-disk mr-2"></i>Save changes</button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Announcement modal -->
+        <div id="announcement-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[100]"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl max-h-[92vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p id="announcement-modal-kicker"
+                            class="text-xs uppercase tracking-wider font-bold text-victoria-accent">Public broadcast</p>
+                        <h2 id="announcement-modal-title" class="text-xl font-extrabold text-victoria-blue mt-1">Post
+                            announcement</h2>
+                    </div><button type="button" data-close-modal="announcement-modal"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="announcement-form" class="p-6 space-y-4">
+                    <input type="hidden" id="ann-id">
+                    <div><label for="ann-title"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Title</label><input type="text"
+                            id="ann-title" maxlength="120" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm"></div>
+                    <div><label for="ann-priority"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Priority</label><select
+                            id="ann-priority" class="w-full border-slate-300 rounded-xl p-2.5 text-sm">
+                            <option value="Normal">Normal notification</option>
+                            <option value="Important">Important update</option>
+                            <option value="Emergency">Emergency alert</option>
+                        </select></div>
+                    <div><label for="ann-desc"
+                            class="block text-sm font-semibold text-slate-700 mb-1.5">Message</label><textarea
+                            id="ann-desc" rows="5" maxlength="1200" required
+                            class="w-full border-slate-300 rounded-xl p-2.5 text-sm resize-y"></textarea></div>
+                    <fieldset class="rounded-xl border border-slate-200 p-4">
+                        <legend class="px-1 text-sm font-semibold text-slate-700">Announcement image <span
+                                class="font-normal text-slate-400">(optional)</span></legend>
+                        <p id="ann-image-help" class="text-xs text-slate-400 mb-3">Leave the selected field empty if no
+                            image is needed.</p>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="ann-image-source" value="url" class="peer sr-only" checked>
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-link"></i>Image URL</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="ann-image-source" value="upload" class="peer sr-only">
+                                <span
+                                    class="flex items-center justify-center gap-2 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 peer-checked:bg-victoria-light peer-checked:border-victoria-accent peer-checked:text-victoria-blue"><i
+                                        class="fa-solid fa-paperclip"></i>Upload image</span>
+                            </label>
+                        </div>
+                        <div id="ann-image-url-panel">
+                            <label for="ann-image" class="block text-xs font-semibold text-slate-600 mb-1.5">Image
+                                URL</label>
+                            <input type="url" id="ann-image" class="w-full border-slate-300 rounded-xl p-2.5 text-sm"
+                                placeholder="https://example.com/announcement.jpg">
+                        </div>
+                        <div id="ann-image-upload-panel" class="hidden">
+                            <label for="ann-image-file" class="block text-xs font-semibold text-slate-600 mb-1.5">Attach
+                                image file</label>
+                            <input type="file" id="ann-image-file" accept="image/jpeg,image/png,image/webp"
+                                class="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-victoria-light file:px-3 file:py-2 file:font-bold file:text-victoria-blue hover:file:bg-blue-100">
+                            <p id="ann-image-file-label" class="text-[11px] text-slate-400 mt-2">Original retained when
+                                possible · high-quality optimization · 8 MB max</p>
+                        </div>
+                        <label id="ann-remove-image-wrap"
+                            class="hidden items-center gap-2 mt-3 text-xs font-semibold text-rose-600 cursor-pointer">
+                            <input type="checkbox" id="ann-remove-image"
+                                class="rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                            Remove the current announcement image
+                        </label>
+                    </fieldset>
+                    <div class="flex justify-end gap-3 pt-2"><button type="button" data-close-modal="announcement-modal"
+                            class="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold hover:bg-slate-50">Cancel</button><button
+                            id="announcement-submit-button" type="submit"
+                            class="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold"><i
+                                class="fa-solid fa-bullhorn mr-2"></i><span
+                                id="announcement-submit-text">Broadcast</span></button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Event details modal -->
+        <div id="event-details-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[100]"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden">
+                <div id="details-image-wrap" class="hidden h-52 bg-slate-100 overflow-hidden"><img id="details-image"
+                        alt="Event" class="w-full h-full object-cover"></div>
+                <div class="p-6">
+                    <div class="flex items-start justify-between gap-5">
+                        <div><span id="details-category"
+                                class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-victoria-light text-victoria-blue"></span>
+                            <h2 id="details-title" class="text-2xl font-extrabold text-victoria-blue mt-3"></h2>
+                        </div><button type="button" data-close-modal="event-details-modal"
+                            class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100 shrink-0"><i
+                                class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 my-5">
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Schedule</p>
+                            <p id="details-date" class="text-sm font-semibold mt-1"></p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Location</p>
+                            <p id="details-location" class="text-sm font-semibold mt-1"></p>
+                        </div>
+                    </div>
+                    <p id="details-description" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></p>
+                    <p id="details-author" class="text-xs text-slate-400 mt-5"></p>
+                    <button type="button" data-close-modal="event-details-modal"
+                        class="mt-6 w-full bg-slate-100 text-slate-700 font-semibold py-2.5 rounded-xl text-sm hover:bg-slate-200">Close
+                        details</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generic confirmation -->
+        <div id="confirm-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[220]">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl text-center">
+                <div
+                    class="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="confirm-title" class="text-lg font-extrabold text-slate-900">Confirm action</h3>
+                <p id="confirm-msg" class="text-sm text-slate-500 mt-2 leading-relaxed"></p>
+                <div class="grid grid-cols-2 gap-3 mt-6"><button id="confirm-cancel-btn" type="button"
+                        class="border border-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50">Cancel</button><button
+                        id="confirm-proceed-btn" type="button"
+                        class="bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-rose-700">Proceed</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generic alert -->
+        <div id="organizer-alert-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[230]">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-sm w-full p-6 border border-slate-200 shadow-2xl text-center">
+                <div id="organizer-alert-icon"
+                    class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl"></div>
+                <h3 id="organizer-alert-title" class="text-lg font-extrabold text-slate-900">Notice</h3>
+                <p id="organizer-alert-msg"
+                    class="text-sm text-slate-600 mt-2 leading-relaxed max-h-44 overflow-y-auto"></p>
+                <button id="alert-close-btn" type="button"
+                    class="mt-5 w-full bg-slate-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800">Close</button>
+            </div>
+        </div>
+
+        <!-- Volunteer Details & Actions Modal -->
+        <div id="volunteer-details-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[240] modal-panel overflow-y-auto"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-bold text-victoria-accent">Volunteer Roster</p>
+                        <h2 id="vol-modal-name" class="text-xl font-extrabold text-victoria-blue mt-1">Volunteer Details
+                        </h2>
+                    </div>
+                    <button type="button" onclick="closeVolunteerDetailsModal()"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto text-sm">
+                    <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Email Address</span>
+                            <span id="vol-modal-email" class="font-bold text-slate-800 break-all">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Phone / Contact</span>
+                            <span id="vol-modal-phone" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Skills & Experience</span>
+                            <span id="vol-modal-skills" class="font-semibold text-slate-700">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Availability</span>
+                            <span id="vol-modal-avail" class="font-semibold text-slate-700">--</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-xs text-slate-400 font-medium block">Attached Document</span>
+                            <div id="vol-modal-doc-container" class="mt-1">--</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium block mb-1.5">Volunteer Notes / Message</span>
+                        <div id="vol-modal-notes"
+                            class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 leading-relaxed whitespace-pre-line min-h-16">
+                            No additional notes provided.</div>
+                    </div>
+                </div>
+                <div
+                    class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2" id="vol-modal-actions">
+                        <!-- Action buttons injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Hour Details & Actions Modal -->
+        <div id="hour-details-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[240] modal-panel overflow-y-auto"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-bold text-victoria-accent">Service Ledger</p>
+                        <h2 class="text-xl font-extrabold text-victoria-blue mt-1">Service Hour Verification</h2>
+                    </div>
+                    <button type="button" onclick="closeServiceHourDetailsModal()"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-sm">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Resident Name</span>
+                            <span id="hour-modal-resident" class="font-bold text-slate-900 text-base">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Event / Activity</span>
+                            <span id="hour-modal-event" class="font-bold text-slate-800">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Hours Credited</span>
+                            <span id="hour-modal-hours" class="font-extrabold text-victoria-blue text-lg">--</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Status / Certification</span>
+                            <div id="hour-modal-status-box" class="mt-1">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2" id="hour-modal-actions">
+                        <!-- Action buttons injected by JS -->
+                    </div>
+                    <button type="button" onclick="closeServiceHourDetailsModal()"
+                        class="btn-primary px-5 py-2 rounded-xl font-bold text-xs shadow-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donation Screenshot / Payment Proof Modal -->
+        <div id="donation-screenshot-modal"
+            class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm hidden items-center justify-center p-4 z-[240] modal-panel overflow-y-auto"
+            data-close-on-backdrop="true">
+            <div
+                class="modal-panel bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
+                <div class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+                    <div>
+                        <p class="text-xs uppercase tracking-wider font-bold text-victoria-accent">Payment Verification
+                        </p>
+                        <h2 class="text-xl font-extrabold text-victoria-blue mt-1 flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice-dollar text-victoria-gold"></i><span>Donation Payment
+                                Proof</span>
+                        </h2>
+                    </div>
+                    <button type="button" onclick="closeDonationScreenshotModal()"
+                        class="w-9 h-9 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                    <!-- Summary details box -->
+                    <div
+                        class="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                        <div>
+                            <span class="text-slate-400 font-medium block">Donor Name</span>
+                            <span id="proof-donor-name"
+                                class="font-bold text-slate-900 text-sm mt-0.5 block truncate">--</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-medium block">Amount / Item</span>
+                            <span id="proof-amount"
+                                class="font-extrabold text-emerald-700 text-sm mt-0.5 block truncate">--</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-medium block">Payment Method</span>
+                            <span id="proof-method"
+                                class="font-bold text-slate-800 text-sm mt-0.5 block truncate">--</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-medium block">Transaction ID</span>
+                            <span id="proof-tx-id"
+                                class="font-mono font-bold text-slate-700 text-sm mt-0.5 block truncate">--</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-medium block">Donor's Ref. No. <span
+                                    class="text-rose-500 font-bold">*</span></span>
+                            <span id="proof-user-ref"
+                                class="font-mono font-bold text-victoria-blue text-sm mt-0.5 block truncate">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Screenshot image display -->
+                    <div
+                        class="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-slate-100/50 flex flex-col items-center justify-center min-h-[320px]">
+                        <img id="proof-screenshot-img" src="" alt="Payment Screenshot"
+                            class="max-w-full h-auto max-h-[500px] rounded-xl shadow-lg object-contain border border-slate-200" />
+                        <p id="proof-no-img-msg" class="hidden text-sm text-slate-400 font-medium py-12">No screenshot
+                            uploaded for this payment.</p>
+                    </div>
+                </div>
+                <div
+                    class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2" id="proof-modal-actions-left">
+                        <!-- Confirm / Reject buttons injected by JS -->
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a id="proof-download-btn" href="#" download="donation-receipt.png"
+                            class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-100 flex items-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> Download Receipt
+                        </a>
+                        <button type="button" onclick="closeDonationScreenshotModal()"
+                            class="btn-primary px-5 py-2 rounded-xl font-bold text-xs shadow-sm">
+                            Close Window
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dynamic-modal-root"></div>
+    </div>
+
+    <script type="module" src="organizer.js"></script>
+</body>
+
+</html>
